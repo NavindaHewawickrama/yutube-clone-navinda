@@ -1,45 +1,35 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-//thisis like a bluprint fot database
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite" 
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  username     String
-  avatar       String    @default("https://default-avatar.png")
-  createdAt    DateTime  @default(now())
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String
+  avatar    String   @default("https://default-avatar.png")
+  createdAt DateTime @default(now())
   
-  // Relationships (HOW data connects)
-  videos       Video[]   // One user has many videos
-  comments     Comment[] // One user has many comments
-  likes        Like[]    // One user has many likes
+  videos    Video[]
+  comments  Comment[]
 }
 
 model Video {
   id          String   @id @default(uuid())
   title       String
   description String?
-  url         String   // Cloudinary video URL
-  thumbnail   String   // Cloudinary image URL
+  url         String
+  thumbnail   String   @default("https://default-thumbnail.png")
   createdAt   DateTime @default(now())
   
-  // Foreign key (connects to User)
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   
-  // Reverse relationships
   comments    Comment[]
-  likes       Like[]
 }
 
 model Comment {
@@ -47,24 +37,9 @@ model Comment {
   text      String
   createdAt DateTime @default(now())
   
-  // This comment belongs to ONE user and ONE video
   userId    String
   videoId   String
+  
   user      User     @relation(fields: [userId], references: [id])
   video     Video    @relation(fields: [videoId], references: [id])
 }
-
-model Like {
-  id        String   @id @default(uuid())
-  value     Int      // 1 = like, -1 = dislike
-  createdAt DateTime @default(now())
-  
-  userId    String
-  videoId   String
-  user      User     @relation(fields: [userId], references: [id])
-  video     Video    @relation(fields: [videoId], references: [id])
-  
-  // Ensures one user can only like a video once
-  @@unique([userId, videoId])
-}
-

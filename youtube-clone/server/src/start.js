@@ -1,29 +1,32 @@
-require('dotenv').config(); //loads .env variables into process.env
+require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const app = express();
 
-// MIDDLEWARE - Functions that run on EVERY request
-// Order matters! These run top to bottom
+// Simple middleware
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-app.use(express.json()); // Parses JSON request bodies (req.body)
-app.use(cookieParser()); // Parses cookies (req.cookies)
-app.use(cors({
-    origin: 'http://localhost:3000', // Allow React frontend
-    credentials: true // Allow cookies
-}));
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/videos', require('./routes/videos'));
 
-// ERROR HANDLING - Must be LAST middleware
+// Simple health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', message: 'Server is running!' });
+});
+
+// Error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        message: err.message || 'Something broke!'
-    });
+    console.error(err);
+    res.status(500).json({ message: err.message || 'Something broke!' });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on http://localhost:5000`);
+    console.log(`📡 Test: http://localhost:5000/api/health`);
 });
